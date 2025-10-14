@@ -1,0 +1,155 @@
+from roboflow import Roboflow
+import tempfile
+import gradio as gr
+from PIL import Image
+import os
+
+# --- Roboflow Configuration ---
+API_KEY = "0toOVztRyNdVQFWKbhEz"
+WORKSPACE = "new-wtspm"
+PROJECT_NAME = "tulu-ja1kp"
+VERSION = 1
+
+rf = Roboflow(api_key=API_KEY)
+project = rf.workspace(WORKSPACE).project(PROJECT_NAME)
+model = project.version(VERSION).model
+
+# --- Known Tulu Characters ---
+TULU_CLASSES = {
+    "ಅ", "ಆ", "ಇ", "ಈ", "ಉ", "ಊ", "ಋ", "ಎ", "ಏ", "ಐ", "ಒ", "ಓ", "ಔ", "ಅಂ", "ಅಃ",
+    "ಕ", "ಖ", "ಗ", "ಘ", "ಙ", "ಚ", "ಛ", "ಜ", "ಝ", "ಞ", "ಟ", "ಠ", "ಡ", "ಢ", "ಣ",
+    "ತ", "ಥ", "ದ", "ಧ", "ನ", "ಪ", "ಫ", "ಬ", "ಭ", "ಮ", "ಯ", "ರ", "ಲ", "ವ", "ಶ",
+    "ಷ", "ಸ", "ಹ", "ಳ"
+}
+
+# --- Prediction Logic ---
+def classify_image(img: Image.Image):
+    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp:
+        img_path = temp.name
+        img.save(img_path)
+
+    try:
+        result = model.predict(img_path)
+        prediction = result.json()
+
+        if not prediction["predictions"]:
+            return "No prediction", 0.0, "❌ No character detected."
+
+        pred = prediction["predictions"][0]
+        top_class = pred.get("top", "")
+        confidence = pred.get("confidence", 0.0)
+
+        try:
+            top_class = top_class.encode('latin1').decode('utf-8')
+        except:
+            pass
+
+        is_tulu = top_class in TULU_CLASSES
+        status = "✅ Tulu Character" if is_tulu else "🚫 Non-Tulu Character"
+
+        return top_class, confidence, status
+
+    except Exception as e:
+        return "Error", 0.0, f"❌ Error: {str(e)}"
+
+# --- About Tulu ---
+TULU_INFO = """
+🌺 *About Tulu Language and Culture*
+
+Tulu is a classical Dravidian language spoken predominantly in the coastal regions of Karnataka and northern Kerala, especially in the culturally rich area known as Tulu Nadu. Though not yet officially recognized as a scheduled language in India, Tulu boasts a deep literary history and a vibrant oral tradition, with roots tracing back over a millennium.
+
+The Tulu script, once widely used, is now rarely seen in everyday writing - making efforts to preserve and digitize it both culturally significant and historically valuable. From Yakshagana performances to Bhuta Kola rituals, Tulu culture shines through its distinctive traditions, language, and script - all worth celebrating and preserving for future generations.
+"""
+
+# --- Image Dictionary (title: filename) ---
+local_images = {
+    "Flag (Tulu Nadu Flag)": "flag.jpg",
+    "Scripture (Tulu Script)": "script.jpeg",
+    "Parashurama (Land Creator)": "parashu.jpg",
+    "Koti-Chennayya (Twin Warrior Legends)": "kotichennayya.jpeg",
+    "Tulunadu (Map of tulunadu)": "region.jpeg",
+    
+    "Daiva (Spirit Deity Worship)": "Babbu.jpg",
+    "Huli Vesha (Tiger Dance)": "huli.jpg",
+    "Kambala (Buffalo Race)": "kambala.jpg",
+    "Kola (Spirit Worship Ritual)": "kola.jpg",
+    "Yakshagaana (Dance Drama)": "yakshagaana.jpg",
+    "Kori Katta (Cock Fight)": "cock_fight.jpeg",
+    "Nagamandala (Serpent Ritual)": "nagamandala.jpeg",
+    "Nagabana (Worship Space for Naga Spirits)": "naga.jpg",
+    "Chende (Drum instrument)": "chende.jpg",
+
+    "Kateel Temple (Durga Parameshwari Shrine)": "kateel.jpg",
+    "Koragajja (Tulu Spirit Deity)": "koragajja.jpeg",
+    "Kukke (Subramanya Temple)": "kukke.jpg",
+    "Udupi (Temple Town)": "udupi.jpg",
+    
+    "Chenne Mane (Traditional Game)": "Chenne mane.jpg",
+    "Beach (Seaside)": "beach.jpg",
+    "Boat (For fishing)": "boat.jpg",
+    "Rural view": "region.jpg",
+    "Natti (Paddy Sapling Plantation)": "natti.jpeg",
+    "Ploughing (Traditional Ploughing with Buffaloes)": "plough.jpeg",
+    "Home (Traditional House)": "home.jpeg",
+    "Lifestyle (Daily Rural/Cultural Life)": "life.jpeg",
+    "Dress (Traditional Attire)": "dress.jpeg",
+    "Sea View": "sea.jpg",
+    "Mallige (Jasmine Flower)": "mallige.jpg",
+    "Jackfruit (Seasonal Fruit)": "jack.jpg",
+    
+    "Kori Rutti (Chicken Curry & Dry Roti)": "korrutti.jpeg",
+    "Gatti (Steamed rice dumpling )": "gatti.jpg",
+    "Neer Dosa (Rice Crepe)": "neer.jpg",
+    "Meal (Traditional Meal)": "oota.jpg",
+    "Semige Haalu (Coconut Milk with Rice Noodles)": "semige_haalu.jpeg",
+    "Moode (Cylindrical Idli in Screw Pine Leaves)": "moode.jpeg",
+    "Mangalore Buns (Sweet Banana Poori)": "mangalore_buns.jpeg",
+    "Golibaje (Fritters/Pakora)": "golibaje.jpeg",
+    "Pathrade (Traditional Rural Dish)": "pathrade.jpeg"
+}
+
+
+# ✅ Convert to list of tuples (file path, label) for Gradio
+gallery_items = [(f"./{filename}", title) for title, filename in local_images.items()]
+
+# --- Gradio UI ---
+with gr.Blocks() as demo:
+    gr.Markdown("## 📜 Tulu Lipi Classifier")
+    gr.Markdown("Upload a handwritten character image to classify it using a Roboflow-trained model.")
+
+    with gr.Row():
+        image_input = gr.Image(type="pil", label="Upload Image", image_mode="L")
+        with gr.Column():
+            label_output = gr.Text(label="Predicted Class")
+            confidence_output = gr.Slider(minimum=0, maximum=1, step=0.01, label="Confidence", interactive=False)
+            status_output = gr.Text(label="Classification Result")
+
+    with gr.Row():
+        predict_button = gr.Button("🔍 Predict")
+        about_button = gr.Button("ℹ About Tulu")
+
+    about_text = gr.Markdown(TULU_INFO, visible=False)
+
+    predict_button.click(
+        fn=classify_image,
+        inputs=image_input,
+        outputs=[label_output, confidence_output, status_output]
+    )
+
+    def show_about():
+        return gr.update(visible=True)
+
+    about_button.click(fn=show_about, outputs=about_text)
+
+    gr.Markdown("### 🌸 Cultural Snapshots of Tulu Nadu")
+
+    # ✅ Corrected Gallery usage
+    gr.Gallery(
+        value=gallery_items,
+        label="🌸 Tulu Nadu Culture",
+        columns=[5],
+        object_fit="contain",
+        height=200
+    )
+
+demo.launch()
