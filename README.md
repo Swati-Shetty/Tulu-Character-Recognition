@@ -8,6 +8,7 @@ This project builds an AI system that can recognize handwritten Tulu characters 
 It uses a Vision Transformer (ViT) model trained on a custom dataset of Tulu and similar Dravidian scripts (Kannada, Telugu, Malayalam).
 ________________________________________
 ⚙ Features
+
 •	Vision Transformer-based character recognition
 •	Custom dataset of Tulu and Non-Tulu images
 •	Preprocessing and augmentation with Roboflow
@@ -15,6 +16,7 @@ ________________________________________
 •	Deployed with Gradio and Hugging Face for real-time testing
 ________________________________________
 🧠 Method
+
 1.	Data Preparation
 o	Images collected from multiple writers
 o	Grayscale conversion, normalization, and resizing to 224×224
@@ -30,10 +32,12 @@ o	Recall: 96.6%
 o	F1-score: 97.1%
 ________________________________________
 🖥 Deployment
+
 •	Model hosted on Hugging Face
 •	Interactive Gradio interface for uploading handwritten images and getting predictions instantly
 ________________________________________
 🔮 Future Improvements
+
 •	Expand dataset with more handwriting samples
 •	Add word-level OCR (sequence recognition)
 •	Create lightweight mobile-friendly models
