@@ -1,7 +1,9 @@
-##Digitizing Tulu##
+##Digitizing Tulu
+
 A deep learning project for handwritten Tulu script recognition using Vision Transformers (ViT) to support cultural preservation and digital accessibility.
 ________________________________________
-##Overview##
+##Overview
+
 This project builds an AI system that can recognize handwritten Tulu characters from images.
 It uses a Vision Transformer (ViT) model trained on a custom dataset of Tulu and similar Dravidian scripts (Kannada, Telugu, Malayalam).
 ________________________________________
