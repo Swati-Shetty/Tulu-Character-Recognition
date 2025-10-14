@@ -18,18 +18,18 @@ ________________________________________
 🧠 Method
 
 1.	Data Preparation
-o	Images collected from multiple writers
-o	Grayscale conversion, normalization, and resizing to 224×224
-o	Augmentations: small rotations, brightness change, and noise addition
+*	Images collected from multiple writers
+*	Grayscale conversion, normalization, and resizing to 224×224
+*	Augmentations: small rotations, brightness change, and noise addition
 2.	Model Training
-o	Vision Transformer (ViT-Base/16)
-o	Learning rate scheduling with cosine annealing
-o	Trained for 50 epochs with early stopping
+*	Vision Transformer (ViT-Base/16)
+*	Learning rate scheduling with cosine annealing
+*	Trained for 50 epochs with early stopping
 3.	Evaluation
-o	Accuracy: 98%
-o	Precision: 98.3%
-o	Recall: 96.6%
-o	F1-score: 97.1%
+*	Accuracy: 98%
+*	Precision: 98.3%
+*	Recall: 96.6%
+*	F1-score: 97.1%
 ________________________________________
 🖥 Deployment
 
